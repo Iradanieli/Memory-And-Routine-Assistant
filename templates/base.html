@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Personal Memory Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="{{ url_for('home') }}">
+        <span class="brand-mark">M</span>
+        <span>
+          <strong>Memory & Routine Assistant</strong>
+          <small>Personal orientation and daily support</small>
+        </span>
+      </a>
+      <nav>
+        <a href="{{ url_for('home') }}">Assistant</a>
+        <a href="{{ url_for('schedule') }}">Monthly Schedule</a>
+        <a href="{{ url_for('caregiver') }}">Caregiver</a>
+      </nav>
+    </header>
+
+    <main>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <section class="flash">
+            {% for message in messages %}
+              <p>{{ message }}</p>
+            {% endfor %}
+          </section>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

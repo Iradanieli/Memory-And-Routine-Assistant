@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-heading">
+  <p class="eyebrow">Caregiver page</p>
+  <h1>Manage local routine data.</h1>
+  <p>Add daily events and tasks. These updates change only the CSV files inside the app.</p>
+</section>
+
+<section class="caregiver-grid">
+  <article class="panel">
+    <div class="panel-heading">
+      <h2>Add Event</h2>
+      <p>Appointments, visits, calls, walks, or reminders with a place.</p>
+    </div>
+    <form class="data-form" action="{{ url_for('add_event') }}" method="post">
+      <label>Title <input name="title" required placeholder="Doctor appointment"></label>
+      <label>Date <input name="date" type="date" required></label>
+      <label>Time <input name="time" type="time" required></label>
+      <label>Location <input name="location" placeholder="GreenCare Clinic"></label>
+      <label>Related person <input name="related_person" placeholder="Dana"></label>
+      <label>Notes <textarea name="notes" rows="3" placeholder="Bring ID and medication list"></textarea></label>
+      <button type="submit">Add Event</button>
+    </form>
+  </article>
+
+  <article class="panel">
+    <div class="panel-heading">
+      <h2>Add Task</h2>
+      <p>Simple actions the user should remember during the day.</p>
+    </div>
+    <form class="data-form" action="{{ url_for('add_task') }}" method="post">
+      <label>Title <input name="title" required placeholder="Drink water"></label>
+      <label>Date <input name="date" type="date" required></label>
+      <label>Time <input name="time" type="time" required></label>
+      <label>Priority
+        <select name="priority">
+          <option>Medium</option>
+          <option>High</option>
+          <option>Low</option>
+        </select>
+      </label>
+      <button type="submit">Add Task</button>
+    </form>
+  </article>
+</section>
+{% endblock %}

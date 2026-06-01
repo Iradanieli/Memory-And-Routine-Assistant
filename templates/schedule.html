@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-heading">
+  <p class="eyebrow">Monthly schedule</p>
+  <h1>{{ month_start.strftime("%B %Y") }}</h1>
+  <p>Events from the local CSV schedule.</p>
+</section>
+
+<section class="schedule-tools">
+  <a class="nav-button" href="{{ url_for('schedule', month=previous_month.strftime('%Y-%m')) }}">Previous Month</a>
+  <a class="nav-button" href="{{ url_for('schedule', month=today.strftime('%Y-%m')) }}">Current Month</a>
+  <a class="nav-button" href="{{ url_for('schedule', month=next_month.strftime('%Y-%m')) }}">Next Month</a>
+</section>
+
+<section class="panel schedule-panel">
+  <div class="panel-heading">
+    <h2>Events</h2>
+  </div>
+
+  <div class="month-list">
+    {% for event in events %}
+      <article class="month-event">
+        <div class="month-date">
+          <span>{{ event.date }}</span>
+          <strong>{{ event.time }}</strong>
+        </div>
+        <div>
+          <h3>{{ event.title }}</h3>
+          <p>{{ event.location }}{% if event.related_person %} · {{ event.related_person }}{% endif %}</p>
+          {% if event.notes %}<p>{{ event.notes }}</p>{% endif %}
+        </div>
+        <div class="event-actions">
+          <span class="status-pill">{{ event.status }}</span>
+          <form action="{{ url_for('delete_event', event_id=event.event_id) }}" method="post">
+            <input type="hidden" name="month" value="{{ month_start.strftime('%Y-%m') }}">
+            <button class="remove-button" type="submit">Remove</button>
+          </form>
+        </div>
+      </article>
+    {% else %}
+      <p class="empty">No events are scheduled for this month.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

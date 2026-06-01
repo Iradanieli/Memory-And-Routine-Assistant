@@ -1,0 +1,11 @@
+services:
+  memory-routine-assistant:
+    build: .
+    image: memory-routine-assistant
+    ports:
+      - "5001:5000"
+    env_file:
+      - .env
+    volumes:
+      - ./structured:/app/structured
+      - ${HOME}/.aws:/root/.aws:ro

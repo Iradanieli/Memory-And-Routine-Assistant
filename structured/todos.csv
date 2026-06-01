@@ -1,0 +1,22 @@
+task_id,title,date,time,priority,status
+T001,Bring medication list to clinic appointment,2026-05-28,08:30,High,Open
+T002,Call Daniel if confused about transportation,2026-05-28,08:45,High,Open
+T003,Take morning medication,2026-05-31,08:00,High,Closed
+T004,Prepare phone for Daniel's video call,2026-05-31,17:00,Medium,Open
+T005,Take morning medication,2026-06-01,08:00,High,Closed
+T006,Take morning medication,2026-06-02,08:00,High,Open
+T007,Take morning medication,2026-06-03,08:00,High,Open
+T008,Take morning medication,2026-06-04,08:00,High,Open
+T009,Take morning medication,2026-06-05,08:00,High,Open
+T010,Put medication list in the bag,2026-06-05,08:30,High,Open
+T011,Bring ID card to clinic appointment,2026-06-05,08:35,High,Open
+T012,Call Dana before leaving for the clinic,2026-06-05,09:15,High,Open
+T013,Take morning medication,2026-06-06,08:00,High,Open
+T014,Take morning medication,2026-06-07,08:00,High,Open
+T015,Take morning medication,2026-06-08,08:00,High,Open
+T016,Take morning medication,2026-06-09,08:00,High,Open
+T017,Take morning medication,2026-06-10,08:00,High,Open
+T018,Take morning medication,2026-06-11,08:00,High,Open
+T019,Take morning medication,2026-06-12,08:00,High,Open
+T020,Take morning medication,2026-06-13,08:00,High,Open
+T021,Check pharmacy note on kitchen table,2026-06-18,09:30,Medium,Open

@@ -1,0 +1,13 @@
+event_id,title,date,time,location,related_person,notes,status
+E001,Appointment with Dr. Amir Cohen,2025-06-10,09:30,GreenCare Clinic,Dana,Bring ID card and medication list,Scheduled
+E002,Walk with Ruth,2025-06-10,17:00,Neighborhood park,Ruth,Meet near the building entrance and wear comfortable shoes,Scheduled
+E003,Family dinner with Daniel,2025-06-13,18:30,Daniel's home,Daniel,Dana will arrange transportation,Scheduled
+E004,Maya evening call,2025-06-10,19:00,Phone,Maya,Maya usually calls in the evening,Scheduled
+E005,Video call with Daniel,2026-05-31,17:30,Living room,Daniel,Dana will help start the call if needed,Scheduled
+E006,Family lunch with Maya,2026-06-02,13:00,Maya's home,Maya,Bring a light jacket,Scheduled
+E007,Clinic follow-up appointment,2026-06-05,10:15,GreenCare Clinic,Dana,Bring ID card and medication list,Scheduled
+E008,Walk in the neighborhood park,2026-06-09,16:45,Neighborhood park,Ruth,Meet near the building entrance,Scheduled
+E09,Phone call with Rachel,2026-06-12,19:00,Phone,Rachel,Call after dinner,Scheduled
+E010,Pharmacy pickup,2026-06-18,11:00,Central Pharmacy,Dana,Pick up renewed prescription,Scheduled
+E011,Family dinner with Daniel,2026-06-26,18:30,Daniel's home,Daniel,Dana will arrange transportation,Scheduled
+E0B33A86F,Watching World Cup Opening Game,2026-06-11,22:00,My home,Daniel,EL EL ISRAEL,Scheduled
