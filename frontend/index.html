@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Personal Memory Assistant</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#" data-view-link="assistant">
+        <span class="brand-mark">M</span>
+        <span>
+          <strong>Memory & Routine Assistant</strong>
+          <small>Personal orientation and daily support</small>
+        </span>
+      </a>
+      <nav>
+        <a href="#" data-view-link="assistant">Assistant</a>
+        <a href="#" data-view-link="schedule">Monthly Schedule</a>
+        <a href="#" data-view-link="caregiver">Caregiver</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="assistant-hero">
+        <div>
+          <p class="eyebrow" id="today-label"></p>
+          <h1>Ask a memory question or review the day.</h1>
+        </div>
+      </section>
+
+      <section class="layout view" id="assistant-view">
+        <article class="panel ask-panel">
+          <div class="panel-heading">
+            <p>Ask about family, places, appointments, reassurance, or daily routine.</p>
+          </div>
+
+          <form class="question-form" id="question-form">
+            <label for="question">Question</label>
+            <textarea id="question" name="question" rows="4"></textarea>
+            <div class="question-actions">
+              <button type="button" class="secondary-button" id="speak-button">🎤 Speak</button>
+              <button type="submit">Send</button>
+            </div>
+            <p class="speech-status" id="speech-status" aria-live="polite"></p>
+          </form>
+
+          <section class="answer hidden" id="answer-panel">
+            <h3>Answer</h3>
+            <p id="answer-text"></p>
+            <div id="citations-panel" class="hidden">
+              <h4>Sources</h4>
+              <ul id="citations-list"></ul>
+            </div>
+          </section>
+        </article>
+
+        <aside class="routine">
+          <div class="panel">
+            <div class="panel-heading">
+              <h2>What do I have today?</h2>
+              <p id="fallback-day-message"></p>
+            </div>
+
+            <h3>Schedule</h3>
+            <div class="stack" id="today-events"></div>
+
+            <h3>Open Tasks</h3>
+            <div class="stack" id="today-tasks"></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="view hidden" id="schedule-view">
+        <section class="page-heading">
+          <p class="eyebrow">Monthly schedule</p>
+          <h1 id="schedule-month-title"></h1>
+          <p>Events from the local CSV schedule.</p>
+        </section>
+
+        <section class="schedule-tools">
+          <button class="nav-button" type="button" id="previous-month">Previous Month</button>
+          <button class="nav-button" type="button" id="current-month">Current Month</button>
+          <button class="nav-button" type="button" id="next-month">Next Month</button>
+        </section>
+
+        <section class="panel schedule-panel">
+          <div class="panel-heading">
+            <h2>Events</h2>
+          </div>
+          <div class="month-list" id="month-events"></div>
+        </section>
+      </section>
+
+      <section class="view hidden" id="caregiver-view">
+        <section class="page-heading">
+          <p class="eyebrow">Caregiver page</p>
+          <h1>Manage local routine data.</h1>
+          <p>Add daily events and tasks. These updates change only the CSV files inside the app.</p>
+        </section>
+
+        <section class="caregiver-grid">
+          <article class="panel">
+            <div class="panel-heading">
+              <h2>Add Event</h2>
+              <p>Appointments, visits, calls, walks, or reminders with a place.</p>
+            </div>
+            <form class="data-form" id="event-form">
+              <label>Title <input name="title" required placeholder="Doctor appointment"></label>
+              <label>Date <input name="date" type="date" required></label>
+              <label>Time <input name="time" type="time" required></label>
+              <label>Location <input name="location" placeholder="GreenCare Clinic"></label>
+              <label>Related person <input name="related_person" placeholder="Dana"></label>
+              <label>Notes <textarea name="notes" rows="3" placeholder="Bring ID and medication list"></textarea></label>
+              <button type="submit">Add Event</button>
+            </form>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <h2>Add Task</h2>
+              <p>Simple actions the user should remember during the day.</p>
+            </div>
+            <form class="data-form" id="task-form">
+              <label>Title <input name="title" required placeholder="Drink water"></label>
+              <label>Date <input name="date" type="date" required></label>
+              <label>Time <input name="time" type="time" required></label>
+              <label>Priority
+                <select name="priority">
+                  <option>Medium</option>
+                  <option>High</option>
+                  <option>Low</option>
+                </select>
+              </label>
+              <button type="submit">Add Task</button>
+            </form>
+          </article>
+        </section>
+      </section>
+
+      <section class="flash hidden" id="message-panel">
+        <p id="message-text"></p>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+    <script src="/static/speech.js"></script>
+  </body>
+</html>

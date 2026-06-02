@@ -1,11 +1,23 @@
 services:
-  memory-routine-assistant:
-    build: .
-    image: memory-routine-assistant
-    ports:
-      - "5001:5000"
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: memory-routine-backend
     env_file:
       - .env
+    expose:
+      - "5000"
     volumes:
-      - ./structured:/app/structured
+      - ./backend/structured:/app/structured
       - ${HOME}/.aws:/root/.aws:ro
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: memory-routine-frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-80}:80"

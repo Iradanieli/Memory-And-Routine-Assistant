@@ -8,7 +8,7 @@ from uuid import uuid4
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError, NoCredentialsError
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import Flask, jsonify, request
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -123,9 +123,9 @@ def dashboard_data():
         "todos": sorted_by_date_time(selected_todos),
         "all_events": sorted_by_date_time(events),
         "all_todos": sorted_by_date_time(todos),
-        "selected_day": selected_day,
+        "selected_day": selected_day.isoformat(),
         "is_fallback_day": is_fallback_day,
-        "today": date.today(),
+        "today": date.today().isoformat(),
     }
 
 
@@ -156,6 +156,13 @@ def monthly_events(month_start):
             and month_start <= parse_date(event.get("date")) <= month_end
         ]
     )
+
+
+def row_by_id(path, fieldnames, key, value):
+    for row in read_csv(path, fieldnames):
+        if row.get(key) == value:
+            return row
+    return None
 
 
 def ask_knowledge_base(question):
@@ -191,20 +198,23 @@ def ask_knowledge_base(question):
     return answer or "I could not find an answer in the memory documents.", citations
 
 
-@app.get("/")
-def home():
-    data = dashboard_data()
-    return render_template("index.html", **data, question="", answer=None, citations=[])
+@app.get("/api/health")
+def health():
+    return jsonify({"status": "ok"})
 
 
-@app.post("/ask")
-def ask():
-    question = request.form.get("question", "").strip()
-    data = dashboard_data()
+@app.get("/api/dashboard")
+def api_dashboard():
+    return jsonify(dashboard_data())
+
+
+@app.post("/api/ask")
+def api_ask():
+    payload = request.get_json(silent=True) or {}
+    question = payload.get("question", "").strip()
 
     if not question:
-        flash("Please type a question first.")
-        return render_template("index.html", **data, question="", answer=None, citations=[])
+        return jsonify({"error": "Please type a question first."}), 400
 
     try:
         answer, citations = ask_knowledge_base(question)
@@ -218,88 +228,91 @@ def ask():
         answer = f"Bedrock could not answer right now: {exc}"
         citations = []
 
-    return render_template(
-        "index.html", **data, question=question, answer=answer, citations=citations
-    )
+    return jsonify({"answer": answer, "citations": citations})
 
 
-@app.get("/caregiver")
-def caregiver():
-    return render_template("caregiver.html", today=date.today())
-
-
-@app.get("/schedule")
-def schedule():
+@app.get("/api/schedule")
+def api_schedule():
     month_start = parse_month(request.args.get("month"))
-    return render_template(
-        "schedule.html",
-        events=monthly_events(month_start),
-        month_start=month_start,
-        previous_month=add_months(month_start, -1),
-        next_month=add_months(month_start, 1),
-        today=date.today(),
+    return jsonify(
+        {
+            "events": monthly_events(month_start),
+            "month": month_start.strftime("%Y-%m"),
+            "month_label": month_start.strftime("%B %Y"),
+            "previous_month": add_months(month_start, -1).strftime("%Y-%m"),
+            "next_month": add_months(month_start, 1).strftime("%Y-%m"),
+            "today_month": date.today().strftime("%Y-%m"),
+        }
     )
 
 
-@app.post("/caregiver/event")
-def add_event():
+@app.post("/api/events")
+def api_add_event():
+    payload = request.get_json(silent=True) or {}
     events = read_csv(EVENTS_FILE, EVENT_FIELDS)
-    events.append(
-        {
-            "event_id": f"E{uuid4().hex[:8].upper()}",
-            "title": request.form.get("title", "").strip(),
-            "date": request.form.get("date", "").strip(),
-            "time": request.form.get("time", "").strip(),
-            "location": request.form.get("location", "").strip(),
-            "related_person": request.form.get("related_person", "").strip(),
-            "notes": request.form.get("notes", "").strip(),
-            "status": "Scheduled",
-        }
-    )
+    event = {
+        "event_id": f"E{uuid4().hex[:8].upper()}",
+        "title": payload.get("title", "").strip(),
+        "date": payload.get("date", "").strip(),
+        "time": payload.get("time", "").strip(),
+        "location": payload.get("location", "").strip(),
+        "related_person": payload.get("related_person", "").strip(),
+        "notes": payload.get("notes", "").strip(),
+        "status": "Scheduled",
+    }
+    if not event["title"] or not event["date"] or not event["time"]:
+        return jsonify({"error": "Title, date, and time are required."}), 400
+
+    events.append(event)
     write_csv(EVENTS_FILE, EVENT_FIELDS, events)
-    flash("Event added to the routine.")
-    return redirect(url_for("caregiver"))
+    return jsonify(event), 201
 
 
-@app.post("/caregiver/task")
-def add_task():
+@app.post("/api/tasks")
+def api_add_task():
+    payload = request.get_json(silent=True) or {}
     todos = read_csv(TODOS_FILE, TODO_FIELDS)
-    todos.append(
-        {
-            "task_id": f"T{uuid4().hex[:8].upper()}",
-            "title": request.form.get("title", "").strip(),
-            "date": request.form.get("date", "").strip(),
-            "time": request.form.get("time", "").strip(),
-            "priority": request.form.get("priority", "Medium"),
-            "status": "Open",
-        }
-    )
+    task = {
+        "task_id": f"T{uuid4().hex[:8].upper()}",
+        "title": payload.get("title", "").strip(),
+        "date": payload.get("date", "").strip(),
+        "time": payload.get("time", "").strip(),
+        "priority": payload.get("priority", "Medium"),
+        "status": "Open",
+    }
+    if not task["title"] or not task["date"] or not task["time"]:
+        return jsonify({"error": "Title, date, and time are required."}), 400
+
+    todos.append(task)
     write_csv(TODOS_FILE, TODO_FIELDS, todos)
-    flash("Task added to the routine.")
-    return redirect(url_for("caregiver"))
+    return jsonify(task), 201
 
 
-@app.post("/event/<event_id>/delete")
-def delete_event(event_id):
+@app.delete("/api/events/<event_id>")
+def api_delete_event(event_id):
+    existing = row_by_id(EVENTS_FILE, EVENT_FIELDS, "event_id", event_id)
+    if not existing:
+        return jsonify({"error": "Event not found."}), 404
+
     events = read_csv(EVENTS_FILE, EVENT_FIELDS)
     events = [event for event in events if event.get("event_id") != event_id]
     write_csv(EVENTS_FILE, EVENT_FIELDS, events)
-
-    month = request.form.get("month")
-    if month:
-        return redirect(url_for("schedule", month=month))
-    return redirect(url_for("schedule"))
+    return jsonify({"deleted": event_id})
 
 
-@app.post("/task/<task_id>/done")
-def mark_task_done(task_id):
+@app.post("/api/tasks/<task_id>/done")
+def api_mark_task_done(task_id):
+    existing = row_by_id(TODOS_FILE, TODO_FIELDS, "task_id", task_id)
+    if not existing:
+        return jsonify({"error": "Task not found."}), 404
+
     todos = read_csv(TODOS_FILE, TODO_FIELDS)
     for todo in todos:
         if todo.get("task_id") == task_id:
             todo["status"] = "Closed"
             break
     write_csv(TODOS_FILE, TODO_FIELDS, todos)
-    return redirect(url_for("home"))
+    return jsonify({"task_id": task_id, "status": "Closed"})
 
 
 if __name__ == "__main__":
