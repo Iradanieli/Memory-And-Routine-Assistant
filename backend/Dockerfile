@@ -10,6 +10,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
+COPY routers ./routers
+COPY services ./services
 COPY structured ./structured
 
 EXPOSE 5000
