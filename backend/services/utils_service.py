@@ -1,22 +1,4 @@
-import csv
 from datetime import date, datetime
-
-
-def read_csv(path, fieldnames):
-    if not path.exists():
-        return []
-
-    with path.open("r", newline="", encoding="utf-8") as csv_file:
-        reader = csv.DictReader(csv_file)
-        return [{field: row.get(field, "") for field in fieldnames} for row in reader]
-
-
-def write_csv(path, fieldnames, rows, structured_dir):
-    structured_dir.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
 
 
 def parse_date(value):
@@ -56,10 +38,3 @@ def add_months(month_start, offset):
     year = month_start.year + month_index // 12
     month = month_index % 12 + 1
     return date(year, month, 1)
-
-
-def row_by_id(path, fieldnames, key, value):
-    for row in read_csv(path, fieldnames):
-        if row.get(key) == value:
-            return row
-    return None

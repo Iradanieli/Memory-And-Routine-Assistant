@@ -1,36 +1,15 @@
 import calendar
 from collections import Counter
 from datetime import date
-from pathlib import Path
 from uuid import uuid4
 
+from services import routine_repository
 from services.utils_service import (
     add_months,
     parse_date,
     parse_month,
-    read_csv,
-    row_by_id,
     sorted_by_date_time,
-    write_csv,
 )
-
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-STRUCTURED_DIR = BASE_DIR / "structured"
-EVENTS_FILE = STRUCTURED_DIR / "events.csv"
-TODOS_FILE = STRUCTURED_DIR / "todos.csv"
-
-EVENT_FIELDS = [
-    "event_id",
-    "title",
-    "date",
-    "time",
-    "location",
-    "related_person",
-    "notes",
-    "status",
-]
-TODO_FIELDS = ["task_id", "title", "date", "time", "priority", "status"]
 
 
 def select_dashboard_day(events, todos):
@@ -56,8 +35,8 @@ def select_dashboard_day(events, todos):
 
 
 def dashboard_data():
-    events = read_csv(EVENTS_FILE, EVENT_FIELDS)
-    todos = read_csv(TODOS_FILE, TODO_FIELDS)
+    events = routine_repository.list_events()
+    todos = routine_repository.list_tasks()
     selected_day, is_fallback_day = select_dashboard_day(events, todos)
 
     selected_events = [
@@ -87,7 +66,7 @@ def dashboard_data():
 def monthly_events(month_start):
     _, last_day = calendar.monthrange(month_start.year, month_start.month)
     month_end = month_start.replace(day=last_day)
-    events = read_csv(EVENTS_FILE, EVENT_FIELDS)
+    events = routine_repository.list_events()
 
     return sorted_by_date_time(
         [
@@ -125,14 +104,11 @@ def build_event(payload):
 
 
 def create_event(payload):
-    events = read_csv(EVENTS_FILE, EVENT_FIELDS)
     event = build_event(payload)
     if not event["title"] or not event["date"] or not event["time"]:
         return {"error": "Title, date, and time are required."}, 400
 
-    events.append(event)
-    write_csv(EVENTS_FILE, EVENT_FIELDS, events, STRUCTURED_DIR)
-    return event, 201
+    return routine_repository.insert_event(event), 201
 
 
 def build_task(payload):
@@ -147,36 +123,26 @@ def build_task(payload):
 
 
 def create_task(payload):
-    todos = read_csv(TODOS_FILE, TODO_FIELDS)
     task = build_task(payload)
     if not task["title"] or not task["date"] or not task["time"]:
         return {"error": "Title, date, and time are required."}, 400
 
-    todos.append(task)
-    write_csv(TODOS_FILE, TODO_FIELDS, todos, STRUCTURED_DIR)
-    return task, 201
+    return routine_repository.insert_task(task), 201
 
 
 def remove_event(event_id):
-    existing = row_by_id(EVENTS_FILE, EVENT_FIELDS, "event_id", event_id)
+    existing = routine_repository.find_event(event_id)
     if not existing:
         return {"error": "Event not found."}, 404
 
-    events = read_csv(EVENTS_FILE, EVENT_FIELDS)
-    events = [event for event in events if event.get("event_id") != event_id]
-    write_csv(EVENTS_FILE, EVENT_FIELDS, events, STRUCTURED_DIR)
+    routine_repository.delete_event(event_id)
     return {"deleted": event_id}, 200
 
 
 def set_task_done(task_id):
-    existing = row_by_id(TODOS_FILE, TODO_FIELDS, "task_id", task_id)
+    existing = routine_repository.find_task(task_id)
     if not existing:
         return {"error": "Task not found."}, 404
 
-    todos = read_csv(TODOS_FILE, TODO_FIELDS)
-    for todo in todos:
-        if todo.get("task_id") == task_id:
-            todo["status"] = "Closed"
-            break
-    write_csv(TODOS_FILE, TODO_FIELDS, todos, STRUCTURED_DIR)
+    routine_repository.close_task(task_id)
     return {"task_id": task_id, "status": "Closed"}, 200

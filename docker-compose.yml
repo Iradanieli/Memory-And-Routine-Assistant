@@ -1,4 +1,21 @@
 services:
+  database:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: memory_assistant
+      POSTGRES_USER: memory_user
+      POSTGRES_PASSWORD: memory_password
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U memory_user -d memory_assistant"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - memory_assistant_db:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+
   backend:
     build:
       context: ./backend
@@ -6,10 +23,18 @@ services:
     image: memory-routine-backend
     env_file:
       - .env
+    environment:
+      POSTGRES_HOST: database
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: memory_assistant
+      POSTGRES_USER: memory_user
+      POSTGRES_PASSWORD: memory_password
+    depends_on:
+      database:
+        condition: service_healthy
     expose:
       - "5000"
     volumes:
-      - ./backend/structured:/app/structured
       - ${HOME}/.aws:/root/.aws:ro
 
   frontend:
@@ -21,3 +46,6 @@ services:
       - backend
     ports:
       - "${FRONTEND_PORT:-80}:80"
+
+volumes:
+  memory_assistant_db:

@@ -1,11 +1,12 @@
 # Personal Memory and Routine Assistant
 
-Two-container web application for a person with memory difficulties. The app combines:
+Three-container web application for a person with memory difficulties. The app combines:
 
 - A Bedrock Knowledge Base memory assistant for natural-language questions.
-- A local CSV routine dashboard for events, tasks, and reminders.
+- A PostgreSQL routine database for events, tasks, and reminders.
 - A caregiver page for adding structured events and tasks.
 - A Flask backend API container.
+- A PostgreSQL database container.
 - An Nginx frontend container that serves the UI and proxies `/api` requests to the backend.
 
 ## Topic
@@ -29,10 +30,11 @@ Public URL used during EC2 testing:
 http://3.144.148.97
 ```
 
-The app was deployed as two Docker containers on EC2:
+The app was deployed as Docker containers on EC2:
 
 - `memory-routine-frontend`: Nginx frontend container, publicly exposed on port `80`.
 - `memory-routine-backend`: Flask backend API container, private inside the Docker network on port `5000`.
+- `database`: PostgreSQL container, private inside the Docker network.
 
 The frontend sends `/api/...` requests to Nginx, and Nginx proxies them to the backend container.
 
@@ -56,14 +58,14 @@ AWS Region: `us-east-2`
 
 Inference profile ARN: configured with `BEDROCK_MODEL_ARN`.
 
-## Local CSV Data
+## Routine Database
 
-The routine database is stored in the project folder:
+Routine data is stored in PostgreSQL. The database has two tables:
 
-- `backend/structured/events.csv`
-- `backend/structured/todos.csv`
+- `events`: replaces the former `events.csv` data.
+- `tasks`: replaces the former `todos.csv` data.
 
-Docker Compose mounts `backend/structured/` into the backend container at `/app/structured`, so caregiver edits and task status changes are saved to the CSV files. The caregiver page updates these CSV files only. It does not update the S3 documents or sync the Bedrock Knowledge Base.
+Docker Compose stores PostgreSQL data in the named volume `memory_assistant_db`. The initial schema and seed data are defined in `database/init/001_schema_and_seed.sql`. The caregiver page updates PostgreSQL only. It does not update the S3 documents or sync the Bedrock Knowledge Base.
 
 ## How The App Works
 
@@ -71,12 +73,13 @@ The user opens the frontend page in the browser. The main assistant page shows a
 
 When the user sends a memory question, the frontend calls the backend API. The Flask backend uses `boto3` to call the Amazon Bedrock Knowledge Base and returns the answer to the frontend.
 
-Routine data is separate from the RAG documents. Events and tasks are read from local CSV files. The caregiver page can add events and tasks, and the monthly schedule page can show or remove events.
+Routine data is separate from the RAG documents. Events and tasks are read from PostgreSQL. The caregiver page can add events and tasks, and the monthly schedule page can show or remove events.
 
 ## Architecture
 
 - `frontend`: Nginx container. Serves `frontend/index.html`, `frontend/static/styles.css`, `frontend/static/app.js`, `frontend/static/speech.js`, and the hero image.
-- `backend`: Flask/Gunicorn container. Exposes private port `5000` inside the Docker network and handles Bedrock and CSV API routes.
+- `backend`: Flask/Gunicorn container. Exposes private port `5000` inside the Docker network and handles Bedrock and routine API routes.
+- `database`: PostgreSQL container. Stores events and tasks in a named Docker volume.
 - Browser requests go to the frontend container.
 - Frontend calls `/api/...`.
 - Nginx proxies `/api/...` to `backend:5000`.
@@ -114,6 +117,12 @@ Stop the app:
 
 ```bash
 docker compose down
+```
+
+Stop the app and delete the PostgreSQL data volume:
+
+```bash
+docker compose down -v
 ```
 
 ## EC2 Deployment Notes
@@ -174,4 +183,3 @@ After testing, delete temporary AWS resources to avoid costs:
 
 - Terminate the EC2 instance used for testing: `3.144.148.97`.
 - Delete temporary security groups if they were created only for this project.
-

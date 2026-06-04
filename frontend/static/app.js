@@ -104,7 +104,7 @@ async function loadDashboard() {
 
   const fallback = byId("fallback-day-message");
   fallback.textContent = data.is_fallback_day
-    ? `No CSV items are dated today. Showing sample routine data from ${formatDate(data.selected_day, {
+    ? `No routine items are dated today. Showing sample routine data from ${formatDate(data.selected_day, {
         month: "long",
         day: "numeric",
         year: "numeric",
