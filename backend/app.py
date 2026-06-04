@@ -19,6 +19,27 @@ TODOS_FILE = STRUCTURED_DIR / "todos.csv"
 AWS_REGION = os.getenv("AWS_REGION", "")
 KNOWLEDGE_BASE_ID = os.getenv("BEDROCK_KNOWLEDGE_BASE_ID", "")
 BEDROCK_MODEL_ARN = os.getenv("BEDROCK_MODEL_ARN", "")
+RAG_PROMPT_TEMPLATE = """
+You are a calm and helpful memory assistant for a person with memory difficulties.
+
+Use only the information in the search results to answer the user's question.
+
+Rules:
+1. Answer using only the provided search results.
+2. If the search results do not contain enough information, say:
+   "I do not have enough information in the memory documents."
+3. Keep the answer simple, clear, and reassuring.
+4. Do not invent facts.
+5. If the question is about safety, confusion, appointments, family, places, or routine, answer gently and directly.
+
+Search results:
+$search_results$
+
+Question:
+$query$
+
+Answer:
+"""
 
 EVENT_FIELDS = [
     "event_id",
@@ -165,7 +186,7 @@ def row_by_id(path, fieldnames, key, value):
     return None
 
 
-def ask_knowledge_base(question):
+def ask_knowledge_base(question): 
     if not KNOWLEDGE_BASE_ID or not BEDROCK_MODEL_ARN:
         return (
             "Bedrock configuration is missing. Set BEDROCK_KNOWLEDGE_BASE_ID "
@@ -174,17 +195,22 @@ def ask_knowledge_base(question):
         )
 
     client = boto3.client("bedrock-agent-runtime", region_name=AWS_REGION)
-    response = client.retrieve_and_generate(
-        input={"text": question},
+    response = client.retrieve_and_generate(  ### calls Bedrock Knowledge Base
+        input={"text": question},   ### the user's question
         retrieveAndGenerateConfiguration={
-            "type": "KNOWLEDGE_BASE",
+            "type": "KNOWLEDGE_BASE",   
             "knowledgeBaseConfiguration": {
-                "knowledgeBaseId": KNOWLEDGE_BASE_ID,
+                "knowledgeBaseId": KNOWLEDGE_BASE_ID, ### which knowledgebase to search
                 "modelArn": BEDROCK_MODEL_ARN,
+                "generationConfiguration": {
+                    "promptTemplate": {
+                        "textPromptTemplate": RAG_PROMPT_TEMPLATE,
+                    },
+                },
             },
         },
     )
-
+    ### extracts generated answer and the source document citations
     answer = response.get("output", {}).get("text", "")
     citations = []
     for citation in response.get("citations", []):
@@ -217,7 +243,7 @@ def api_ask():
         return jsonify({"error": "Please type a question first."}), 400
 
     try:
-        answer, citations = ask_knowledge_base(question)
+        answer, citations = ask_knowledge_base(question) ### answer = answer of the LLM to the user question
     except NoCredentialsError:
         answer = (
             "AWS credentials were not found. On EC2, attach an IAM role with Bedrock "
