@@ -2,7 +2,7 @@
 
 Three-container web application for a person with memory difficulties. The app combines:
 
-- A Bedrock Knowledge Base memory assistant for natural-language questions.
+- A Bedrock Agent memory assistant for natural-language questions.
 - A PostgreSQL routine database for events, tasks, and reminders.
 - A caregiver page for adding structured events and tasks.
 - A Flask backend API container.
@@ -38,9 +38,9 @@ The app was deployed as Docker containers on EC2:
 
 The frontend sends `/api/...` requests to Nginx, and Nginx proxies them to the backend container.
 
-## RAG Documents
+## Bedrock Agent And RAG Documents
 
-The RAG documents are stored in S3 and connected to an existing Amazon Bedrock Knowledge Base. They are not stored in this application image.
+The RAG documents are stored in S3 and connected to an existing Amazon Bedrock Knowledge Base. An Amazon Bedrock Agent uses that Knowledge Base and its configured Lambda action groups to answer questions. The documents and agent configuration are not stored in this application image.
 
 Documents used:
 
@@ -52,11 +52,11 @@ Documents used:
 - `caregiver_instructions.md`
 - `appointment_preparation.md`
 
-Knowledge Base ID: configured with `BEDROCK_KNOWLEDGE_BASE_ID`.
+Agent ID: configured with `BEDROCK_AGENT_ID`.
 
 AWS Region: `us-east-2`
 
-Inference profile ARN: configured with `BEDROCK_MODEL_ARN`.
+Agent alias ID: configured with `BEDROCK_AGENT_ALIAS_ID`.
 
 ## Routine Database
 
@@ -71,7 +71,7 @@ Docker Compose stores PostgreSQL data in the named volume `memory_assistant_db`.
 
 The user opens the frontend page in the browser. The main assistant page shows a question box, a voice input button, today's schedule, and open tasks.
 
-When the user sends a memory question, the frontend calls the backend API. The Flask backend uses `boto3` to call the Amazon Bedrock Knowledge Base and returns the answer to the frontend.
+When the user sends a memory question, the frontend calls the backend API. The Flask backend uses `boto3` to invoke the Amazon Bedrock Agent and returns the answer to the frontend.
 
 Routine data is separate from the RAG documents. Events and tasks are read from PostgreSQL. The caregiver page can add events and tasks, and the monthly schedule page can show or remove events.
 
@@ -158,8 +158,8 @@ Set:
 ```env
 FRONTEND_PORT=80
 AWS_REGION=us-east-2
-BEDROCK_KNOWLEDGE_BASE_ID=your-bedrock-knowledge-base-id
-BEDROCK_MODEL_ARN=your-bedrock-inference-profile-arn
+BEDROCK_AGENT_ID=your-bedrock-agent-id
+BEDROCK_AGENT_ALIAS_ID=your-bedrock-agent-alias-id
 AWS_ACCESS_KEY_ID=your-aws-access-key-id
 AWS_SECRET_ACCESS_KEY=your-aws-secret-access-key
 ```
