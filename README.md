@@ -58,6 +58,8 @@ AWS Region: `us-east-2`
 
 Agent alias ID: configured with `BEDROCK_AGENT_ALIAS_ID`.
 
+Agent session ID: configured with `BEDROCK_AGENT_SESSION_ID`.
+
 ## Routine Database
 
 Routine data is stored in PostgreSQL. The database has two tables:
@@ -85,6 +87,14 @@ Routine data is separate from the RAG documents. Events and tasks are read from 
 - Nginx proxies `/api/...` to `backend:5000`.
 - Only the frontend publishes a host port.
 
+Backend code is split by feature:
+
+- `backend/routers`: thin Flask route handlers.
+- `backend/services/assistant_service.py`: invokes the Bedrock Agent through `boto3`.
+- `backend/services/routine_service.py`: routine business logic.
+- `backend/services/routine_repository.py`: SQL access for events and tasks.
+- `backend/services/db_service.py`: PostgreSQL connection helpers.
+
 ## Run Locally
 
 Create `.env` from the template:
@@ -93,9 +103,9 @@ Create `.env` from the template:
 cp .env.example .env
 ```
 
-Fill in `.env` with your Bedrock values. If you are not using an EC2 IAM role or a local `~/.aws` profile, also set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. For local testing on a Mac, you can set `FRONTEND_PORT=8080` if port 80 is busy.
+Fill in `.env` with your Bedrock Agent values. If you are not using an EC2 IAM role or a local `~/.aws` profile, also set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. For local testing on a Mac, you can set `FRONTEND_PORT=8080` if port 80 is busy.
 
-Start both containers:
+Start the containers:
 
 ```bash
 docker compose up --build
@@ -147,7 +157,15 @@ sudo systemctl start docker
 sudo usermod -aG docker ubuntu
 ```
 
-After reconnecting to the instance, copy or pull the project files. Create `.env`:
+After reconnecting to the instance, create a deployment folder with:
+
+- `docker-compose.yml`
+- `.env`
+- `database/init/001_schema_and_seed.sql`
+
+For EC2, the Compose file can pull prebuilt `linux/amd64` frontend and backend images from Docker Hub instead of building from source. PostgreSQL uses the public `postgres:16` image.
+
+Create `.env`:
 
 ```bash
 cp .env.example .env
@@ -160,20 +178,41 @@ FRONTEND_PORT=80
 AWS_REGION=us-east-2
 BEDROCK_AGENT_ID=your-bedrock-agent-id
 BEDROCK_AGENT_ALIAS_ID=your-bedrock-agent-alias-id
+BEDROCK_AGENT_SESSION_ID=memory-assistant-session
 AWS_ACCESS_KEY_ID=your-aws-access-key-id
 AWS_SECRET_ACCESS_KEY=your-aws-secret-access-key
+```
+
+Pull images:
+
+```bash
+docker compose pull
 ```
 
 Run:
 
 ```bash
-docker compose up --build -d
+docker compose up -d
 ```
 
 Open:
 
 ```text
 http://EC2_PUBLIC_IP
+```
+
+Useful checks:
+
+```bash
+docker compose ps
+curl http://localhost/api/health
+docker compose logs backend
+```
+
+Expected health response:
+
+```json
+{"status":"ok"}
 ```
 
 
