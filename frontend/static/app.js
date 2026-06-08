@@ -17,6 +17,21 @@ function formatDate(value, options = {}) {
   return new Intl.DateTimeFormat("en-US", options).format(date);
 }
 
+function cleanAssistantText(value) {
+  return (value || "")
+    .replace(/\\([*_])/g, "$1")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/__(.*?)__/g, "$1")
+    .replace(/_(.*?)_/g, "$1")
+    .replace(/[*∗＊﹡]/g, "")
+    .replace(/:\s+([🌍🇺🇸🎭⚽📰])/gu, ":\n\n$1")
+    .replace(/\s+([🌍🇺🇸🎭⚽📰][^:\n]{1,40}:)/gu, "\n\n$1")
+    .replace(/\s+-\s+/g, "\n- ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 async function api(path, options = {}) {
   const response = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -132,7 +147,7 @@ async function askQuestion(event) {
       method: "POST",
       body: JSON.stringify({ question }),
     });
-    byId("answer-text").textContent = result.answer;
+    byId("answer-text").textContent = cleanAssistantText(result.answer);
     const citationsList = byId("citations-list");
     citationsList.innerHTML = "";
     if (result.citations && result.citations.length) {

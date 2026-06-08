@@ -60,6 +60,14 @@ Agent alias ID: configured with `BEDROCK_AGENT_ALIAS_ID`.
 
 Agent session ID: configured with `BEDROCK_AGENT_SESSION_ID`.
 
+The Bedrock Agent has three tools:
+
+- **Knowledge Base retrieval**: answers memory questions from the synced S3 documents.
+- **Caregiver alert Lambda**: notifies a caregiver when the user is confused, lost, unsafe, unwell, asks for help, or cannot handle an important appointment.
+- **Current date/time Lambda**: returns the current date, time, day of week, or time-of-day when the user asks.
+- **Daily news**: returns the up to date world news in general or regarding specific domain.
+
+
 ## Routine Database
 
 Routine data is stored in PostgreSQL. The database has two tables:

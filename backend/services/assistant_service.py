@@ -39,6 +39,19 @@ def read_agent_completion(response):
     return "".join(answer_parts), citations
 
 
+def clean_answer_text(value):
+    return (
+        (value or "")
+        .replace("\\*", "*")
+        .replace("**", "")
+        .replace("*", "")
+        .replace("∗", "")
+        .replace("＊", "")
+        .replace("﹡", "")
+        .strip()
+    )
+
+
 def ask_bedrock_agent(question):
     if not BEDROCK_AGENT_ID or not BEDROCK_AGENT_ALIAS_ID:
         return (
@@ -55,6 +68,8 @@ def ask_bedrock_agent(question):
         inputText=question,
     )
     answer, citations = read_agent_completion(response)
+
+    answer = clean_answer_text(answer)
 
     return answer or "I could not find an answer in the memory documents.", citations
 

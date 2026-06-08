@@ -258,6 +258,11 @@ button:disabled {
   margin-top: 0;
 }
 
+#answer-text {
+  line-height: 1.65;
+  white-space: pre-line;
+}
+
 .answer ul {
   overflow-wrap: anywhere;
   padding-left: 20px;
@@ -287,6 +292,11 @@ button:disabled {
 .routine-item time {
   color: var(--cyan);
   font-weight: 800;
+}
+
+.routine-item strong,
+.routine-item span {
+  display: block;
 }
 
 .routine-item p {
@@ -374,28 +384,36 @@ button:disabled {
   color: var(--muted);
 }
 
-.status-pill {
-  background: var(--aqua);
-  border-radius: 999px;
-  color: var(--cyan-dark);
+.status-pill,
+.remove-button {
+  align-items: center;
+  border-radius: 6px;
   display: inline-flex;
   font-size: 0.82rem;
   font-weight: 800;
+  height: 28px;
   justify-content: center;
-  padding: 5px 10px;
+  line-height: 1;
+  min-height: 0;
+  min-width: 82px;
+  padding: 4px 9px;
+  width: auto;
+}
+
+.status-pill {
+  background: var(--aqua);
+  color: var(--cyan-dark);
 }
 
 .event-actions {
-  align-items: stretch;
+  align-items: start;
   display: grid;
-  gap: 8px;
-  justify-items: stretch;
+  gap: 6px;
+  justify-items: end;
 }
 
 .remove-button {
   background: var(--danger);
-  min-height: 34px;
-  padding: 7px 10px;
 }
 
 .remove-button:hover {
