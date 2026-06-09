@@ -34,6 +34,18 @@ a {
   display: none !important;
 }
 
+.sr-only {
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .topbar {
   align-items: center;
   background: rgba(255, 255, 255, 0.92);
@@ -206,10 +218,22 @@ button:hover {
   background: var(--cyan-dark);
 }
 
+.chat-panel {
+  display: grid;
+  gap: 16px;
+}
+
 .question-form,
 .data-form {
   display: grid;
   gap: 14px;
+}
+
+.chat-composer {
+  background: #fbfeff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
 }
 
 .question-actions {
@@ -244,28 +268,54 @@ button:disabled {
   min-height: 1.5em;
 }
 
-.answer {
-  background: var(--aqua);
-  border-left: 5px solid var(--cyan);
+.conversation {
+  display: grid;
+}
+
+.conversation-list {
+  display: grid;
+  gap: 18px;
+}
+
+.conversation-entry {
+  display: grid;
+  gap: 10px;
+}
+
+.chat-message {
+  border: 1px solid var(--line);
   border-radius: 8px;
-  margin-top: 20px;
-  padding: 18px;
+  display: grid;
+  gap: 6px;
+  max-width: 88%;
+  padding: 13px;
+  overflow-wrap: anywhere;
 }
 
-.answer h3,
-.answer h4,
-.answer p {
+.chat-message strong {
+  color: var(--cyan-dark);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+}
+
+.chat-message p {
   margin-top: 0;
+  margin-bottom: 0;
 }
 
-#answer-text {
+.user-message {
+  background: var(--aqua);
+  justify-self: end;
+}
+
+.assistant-message {
+  background: #fbfeff;
+  justify-self: start;
+}
+
+.assistant-answer-text {
   line-height: 1.65;
   white-space: pre-line;
-}
-
-.answer ul {
-  overflow-wrap: anywhere;
-  padding-left: 20px;
 }
 
 .stack {
@@ -344,7 +394,9 @@ button:disabled {
 }
 
 .nav-button:hover {
+  background: var(--aqua);
   border-color: var(--cyan);
+  color: var(--cyan-dark);
 }
 
 .month-list {
@@ -452,12 +504,58 @@ th {
   background: #fff8e6;
   border: 1px solid #efd28a;
   border-radius: 8px;
-  margin: 18px 0;
+  box-shadow: var(--shadow);
+  left: 50%;
+  margin: 0;
+  max-width: min(440px, calc(100vw - 32px));
   padding: 10px 16px;
+  position: fixed;
+  top: 86px;
+  transform: translateX(-50%);
+  width: max-content;
+  z-index: 20;
 }
 
 .flash p {
   margin: 0;
+}
+
+.password-modal {
+  align-items: center;
+  background: rgba(16, 36, 42, 0.46);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 30;
+}
+
+.password-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 14px;
+  max-width: 380px;
+  padding: 22px;
+  width: 100%;
+}
+
+.password-card h2,
+.password-card p {
+  margin: 0;
+}
+
+.password-card p {
+  color: var(--muted);
+}
+
+.password-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
 }
 
 @media (max-width: 900px) {

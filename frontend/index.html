@@ -31,29 +31,20 @@
       </section>
 
       <section class="layout view" id="assistant-view">
-        <article class="panel ask-panel">
-          <div class="panel-heading">
-            <p>Ask about family, places, appointments, reassurance, or daily routine.</p>
-          </div>
+        <article class="panel chat-panel">
+          <section class="conversation hidden" id="answer-panel">
+            <div class="conversation-list" id="conversation-list"></div>
+          </section>
 
-          <form class="question-form" id="question-form">
-            <label for="question">Question</label>
-            <textarea id="question" name="question" rows="4"></textarea>
+          <form class="question-form chat-composer" id="question-form">
+            <label class="sr-only" for="question">Question</label>
+            <textarea id="question" name="question" rows="3" placeholder="Ask about family, places, appointments, reassurance, or daily routine."></textarea>
             <div class="question-actions">
               <button type="button" class="secondary-button" id="speak-button">🎤 Speak</button>
               <button type="submit">Send</button>
             </div>
             <p class="speech-status" id="speech-status" aria-live="polite"></p>
           </form>
-
-          <section class="answer hidden" id="answer-panel">
-            <h3>Answer</h3>
-            <p id="answer-text"></p>
-            <div id="citations-panel" class="hidden">
-              <h4>Sources</h4>
-              <ul id="citations-list"></ul>
-            </div>
-          </section>
         </article>
 
         <aside class="routine">
@@ -143,6 +134,18 @@
         <p id="message-text"></p>
       </section>
     </main>
+
+    <section class="password-modal hidden" id="password-modal" role="dialog" aria-modal="true" aria-labelledby="password-title">
+      <form class="password-card" id="password-form">
+        <h2 id="password-title">Caregiver Access</h2>
+        <p>Enter the caregiver password to continue.</p>
+        <label>Password <input id="caregiver-password" name="password" type="password" inputmode="numeric" autocomplete="current-password"></label>
+        <div class="password-actions">
+          <button type="button" class="secondary-button" id="password-cancel">Cancel</button>
+          <button type="submit">Unlock</button>
+        </div>
+      </form>
+    </section>
 
     <script src="/static/app.js"></script>
     <script src="/static/speech.js"></script>

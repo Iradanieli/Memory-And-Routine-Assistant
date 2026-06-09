@@ -1,15 +1,19 @@
 const state = {
   currentView: "assistant",
   scheduleMonth: null,
+  pendingProtectedView: null,
 };
 
 const byId = (id) => document.getElementById(id);
+const CAREGIVER_PASSWORD = "1234";
+const PROTECTED_VIEWS = new Set(["schedule", "caregiver"]);
 
 function showMessage(message) {
   const panel = byId("message-panel");
+  window.clearTimeout(state.messageTimer);
   byId("message-text").textContent = message;
   panel.classList.remove("hidden");
-  setTimeout(() => panel.classList.add("hidden"), 3500);
+  state.messageTimer = window.setTimeout(() => panel.classList.add("hidden"), 3500);
 }
 
 function formatDate(value, options = {}) {
@@ -30,6 +34,35 @@ function cleanAssistantText(value) {
     .replace(/\s+-\s+/g, "\n- ")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+function addConversationEntry(question) {
+  const container = byId("conversation-list");
+  const article = document.createElement("article");
+  article.className = "conversation-entry";
+
+  const questionBlock = document.createElement("div");
+  questionBlock.className = "chat-message user-message";
+  const questionLabel = document.createElement("strong");
+  questionLabel.textContent = "You";
+  const questionText = document.createElement("p");
+  questionText.textContent = question;
+  questionBlock.append(questionLabel, questionText);
+
+  const answerBlock = document.createElement("div");
+  answerBlock.className = "chat-message assistant-message";
+  const answerLabel = document.createElement("strong");
+  answerLabel.textContent = "Assistant";
+  const answerText = document.createElement("p");
+  answerText.className = "assistant-answer-text";
+  answerText.textContent = "Thinking...";
+  answerBlock.append(answerLabel, answerText);
+
+  article.append(questionBlock, answerBlock);
+  container.append(article);
+  article.scrollIntoView({ behavior: "smooth", block: "end" });
+
+  return { answerText };
 }
 
 async function api(path, options = {}) {
@@ -56,6 +89,44 @@ function showView(viewName) {
   if (viewName === "schedule") {
     loadSchedule(state.scheduleMonth);
   }
+}
+
+function requestProtectedView(viewName) {
+  state.pendingProtectedView = viewName;
+  const modal = byId("password-modal");
+  const passwordInput = byId("caregiver-password");
+  byId("password-form").reset();
+  modal.classList.remove("hidden");
+  passwordInput.focus();
+}
+
+function closePasswordModal() {
+  state.pendingProtectedView = null;
+  byId("password-modal").classList.add("hidden");
+}
+
+function navigateToView(viewName) {
+  if (PROTECTED_VIEWS.has(viewName)) {
+    requestProtectedView(viewName);
+    return;
+  }
+
+  showView(viewName);
+}
+
+function submitPassword(event) {
+  event.preventDefault();
+  const password = byId("caregiver-password").value;
+
+  if (password !== CAREGIVER_PASSWORD) {
+    showMessage("Incorrect caregiver password.");
+    byId("caregiver-password").select();
+    return;
+  }
+
+  const viewName = state.pendingProtectedView;
+  closePasswordModal();
+  showView(viewName);
 }
 
 function renderEvents(events) {
@@ -139,27 +210,17 @@ async function askQuestion(event) {
   }
 
   byId("answer-panel").classList.remove("hidden");
-  byId("answer-text").textContent = "Thinking...";
-  byId("citations-panel").classList.add("hidden");
+  const conversationEntry = addConversationEntry(question);
+  byId("question").value = "";
 
   try {
     const result = await api("/api/ask", {
       method: "POST",
       body: JSON.stringify({ question }),
     });
-    byId("answer-text").textContent = cleanAssistantText(result.answer);
-    const citationsList = byId("citations-list");
-    citationsList.innerHTML = "";
-    if (result.citations && result.citations.length) {
-      result.citations.forEach((citation) => {
-        const item = document.createElement("li");
-        item.textContent = citation;
-        citationsList.append(item);
-      });
-      byId("citations-panel").classList.remove("hidden");
-    }
+    conversationEntry.answerText.textContent = cleanAssistantText(result.answer);
   } catch (error) {
-    byId("answer-text").textContent = error.message;
+    conversationEntry.answerText.textContent = error.message;
   }
 }
 
@@ -190,8 +251,13 @@ function renderMonthEvents(events) {
       </div>
     `;
     article.querySelector(".remove-button").addEventListener("click", async () => {
-      await api(`/api/events/${event.event_id}`, { method: "DELETE" });
-      await loadSchedule(state.scheduleMonth);
+      try {
+        await api(`/api/events/${event.event_id}`, { method: "DELETE" });
+        await loadSchedule(state.scheduleMonth);
+        showMessage("Event deleted successfully.");
+      } catch (error) {
+        showMessage(error.message);
+      }
     });
     container.append(article);
   });
@@ -214,36 +280,48 @@ function formPayload(form) {
 
 async function submitEvent(event) {
   event.preventDefault();
-  await api("/api/events", {
-    method: "POST",
-    body: JSON.stringify(formPayload(event.currentTarget)),
-  });
-  event.currentTarget.reset();
-  showMessage("Event added.");
-  await loadDashboard();
+  const form = event.currentTarget;
+  try {
+    await api("/api/events", {
+      method: "POST",
+      body: JSON.stringify(formPayload(form)),
+    });
+    form.reset();
+    showMessage("Event added successfully.");
+    await loadDashboard();
+  } catch (error) {
+    showMessage(error.message);
+  }
 }
 
 async function submitTask(event) {
   event.preventDefault();
-  await api("/api/tasks", {
-    method: "POST",
-    body: JSON.stringify(formPayload(event.currentTarget)),
-  });
-  event.currentTarget.reset();
-  showMessage("Task added.");
-  await loadDashboard();
+  const form = event.currentTarget;
+  try {
+    await api("/api/tasks", {
+      method: "POST",
+      body: JSON.stringify(formPayload(form)),
+    });
+    form.reset();
+    showMessage("Task added successfully.");
+    await loadDashboard();
+  } catch (error) {
+    showMessage(error.message);
+  }
 }
 
 document.querySelectorAll("[data-view-link]").forEach((link) => {
   link.addEventListener("click", (event) => {
     event.preventDefault();
-    showView(event.currentTarget.dataset.viewLink);
+    navigateToView(event.currentTarget.dataset.viewLink);
   });
 });
 
 byId("question-form").addEventListener("submit", askQuestion);
 byId("event-form").addEventListener("submit", submitEvent);
 byId("task-form").addEventListener("submit", submitTask);
+byId("password-form").addEventListener("submit", submitPassword);
+byId("password-cancel").addEventListener("click", closePasswordModal);
 ["previous-month", "current-month", "next-month"].forEach((id) => {
   byId(id).addEventListener("click", (event) => loadSchedule(event.currentTarget.dataset.month));
 });
